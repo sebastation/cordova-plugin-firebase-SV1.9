@@ -6,7 +6,8 @@ var AdmZip = require("adm-zip");
 var utils = require("./utilities");
 
 var constants = {
-  googleServices: "google-services"
+  googleServices: "google-services",
+  folderNamePrefix: "firebase."
 };
 
 module.exports = function(context) {
@@ -19,6 +20,8 @@ module.exports = function(context) {
     defer = context.requireCordovaModule("q").defer();
   }
   
+  var appId = utils.getAppId(context);
+
   var platform = context.opts.plugin.platform;
   var platformConfig = utils.getPlatformConfigs(platform);
   if (!platformConfig) {
@@ -28,7 +31,15 @@ module.exports = function(context) {
   var wwwPath = utils.getResourcesFolderPath(context, platform, platformConfig);
   var sourceFolderPath = utils.getSourceFolderPath(context, wwwPath);
   
-  var googleServicesZipFile = utils.getZipFile(sourceFolderPath, constants.googleServices);
+  if (cordovaAbove7) {
+    wwwPath = path.join(context.opts.projectRoot, "www");
+  } else {
+    wwwPath = utils.getResourcesFolderPath(context, platform, platformConfig);
+  }
+  
+  var sourceZipName = constants.folderNamePrefix + appId + "." + constants.googleServices; 
+  var googleServicesZipFile = utils.getZipFile(wwwPath, sourceZipName);
+  //var googleServicesZipFile = utils.getZipFile(sourceFolderPath, constants.googleServices);
   if (!googleServicesZipFile) {
     utils.handleError("No zip file found containing google services configuration file", defer);
   }
